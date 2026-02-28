@@ -810,41 +810,44 @@ def build_chart(
 
             fig.add_trace(scatter_bbw_alert, row=1, col=1)
 
-        # ==========================
-        # Marengo 🐎 (North & South)
-        # ==========================
-        if "Marengo" in intraday.columns:
-            marengo_mask = intraday["Marengo"] == "🐎"
-            if marengo_mask.any():
-                offset = 100  # adjust if you want more/less separation
-                marengo_trace = go.Scatter(
+    # ==========================
+    # Marengo ♞ (North & South)
+    # ==========================
+    if "Marengo" in intraday.columns:
+        marengo_mask = intraday["Marengo"] == "🐎"
+        if marengo_mask.any():
+            fig.add_trace(
+                go.Scatter(
                     x=intraday.loc[marengo_mask, "Time"],
-                    y=intraday.loc[marengo_mask, "F% Upper"] + offset,
+                    y=intraday.loc[marengo_mask, "F_numeric"] + 100,
                     mode="text",
-                    text=["🐎"] * int(marengo_mask.sum()),
-                    textfont=dict(size=22),
-                    textposition="top left",
-                    name="Marengo",
-                    showlegend=True,
-                )
-                fig.add_trace(marengo_trace, row=1, col=1)
+                    text=["♞"] * int(marengo_mask.sum()),
+                    textfont=dict(size=24, color="#22D3EE"),
+                    textposition="top center",
+                    name="Marengo ♞",
+                    showlegend=False,
+                    hovertemplate="Time: %{x}<br>F%: %{y}<br>♞ Marengo Up<extra></extra>",
+                ),
+                row=1, col=1,
+            )
 
-        if "South_Marengo" in intraday.columns:
-            south_mask = intraday["South_Marengo"] == "🐎"
-            if south_mask.any():
-                offset_south = 100
-                south_marengo_trace = go.Scatter(
+    if "South_Marengo" in intraday.columns:
+        south_mask = intraday["South_Marengo"] == "🐎"
+        if south_mask.any():
+            fig.add_trace(
+                go.Scatter(
                     x=intraday.loc[south_mask, "Time"],
-                    y=intraday.loc[south_mask, "F% Lower"] - offset_south,
+                    y=intraday.loc[south_mask, "F_numeric"] - 100,
                     mode="text",
-                    text=["🐎"] * int(south_mask.sum()),
-                    textfont=dict(size=22),
-                    textposition="bottom left",
-                    name="South Marengo",
-                    showlegend=True,
-                )
-                fig.add_trace(south_marengo_trace, row=1, col=1)
-
+                    text=["♞"] * int(south_mask.sum()),
+                    textfont=dict(size=24, color="#38BDF8"),
+                    textposition="bottom center",
+                    name="South Marengo ♞",
+                    showlegend=False,
+                    hovertemplate="Time: %{x}<br>F%: %{y}<br>♞ Marengo Down<extra></extra>",
+                ),
+                row=1, col=1,
+            )
 
     # 🟢 STD Expansion (♗)
     if "STD_Alert" in intraday.columns:
