@@ -1176,11 +1176,11 @@ def build_chart(
                     fig.add_trace(
                         go.Scatter(
                             x=intraday.loc[above_mask, "Time"],
-                            y=intraday.loc[above_mask, "F_numeric"] + offset,
+                            y=intraday.loc[above_mask, "F_numeric"] + 60,
                             mode="text",
                             text=["🏇🏼"] * int(above_mask.sum()),
                             textposition="middle center",
-                            textfont=dict(size=22, color="mediumvioletred"),
+                            textfont=dict(size=29, color="mediumvioletred"),
                             name="T1 Horse",
                             hovertemplate=(
                                 "Time: %{x}<br>"
