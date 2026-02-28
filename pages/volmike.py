@@ -1171,28 +1171,53 @@ def build_chart(
                         col=1,
                     )
 
-                # 🏇🏼 ABOVE Mike
+                # ==========================
+    # 🏇🏼 T1 HORSE MARKER
+    # ==========================
+    if "T1_Emoji" in intraday.columns:
+        t1_mask = intraday["T1_Emoji"] == "🏇🏼"
+
+        if t1_mask.any():
+            offset = 120  # ← was 50, pushed further out
+
+            if "Kijun_F" in intraday.columns:
+                mike  = pd.to_numeric(intraday["F_numeric"], errors="coerce")
+                kijun = pd.to_numeric(intraday["Kijun_F"],   errors="coerce")
+                below_mask = t1_mask & (mike <  kijun)
+                above_mask = t1_mask & (mike >= kijun)
+
+                if below_mask.any():
+                    fig.add_trace(
+                        go.Scatter(
+                            x=intraday.loc[below_mask, "Time"],
+                            y=intraday.loc[below_mask, "F_numeric"] - offset,
+                            mode="text",
+                            text=["🏇🏼"] * int(below_mask.sum()),
+                            textposition="middle center",
+                            textfont=dict(size=36, color="mediumvioletred"),  # ← was 22
+                            name="T1 Horse",
+                            showlegend=False,
+                            hovertemplate="Time: %{x}<br>F%: %{y}<br>T1 Horse 🏇🏼<extra></extra>",
+                        ),
+                        row=1, col=1,
+                    )
+
                 if above_mask.any():
                     fig.add_trace(
                         go.Scatter(
                             x=intraday.loc[above_mask, "Time"],
-                            y=intraday.loc[above_mask, "F_numeric"] + 60,
+                            y=intraday.loc[above_mask, "F_numeric"] + offset,
                             mode="text",
                             text=["🏇🏼"] * int(above_mask.sum()),
                             textposition="middle center",
-                            textfont=dict(size=29, color="mediumvioletred"),
+                            textfont=dict(size=36, color="mediumvioletred"),  # ← was 29
                             name="T1 Horse",
-                            hovertemplate=(
-                                "Time: %{x}<br>"
-                                "F%: %{y}<br>"
-                                "T1 Horse 🏇🏼<extra></extra>"
-                            ),
+                            showlegend=False,
+                            hovertemplate="Time: %{x}<br>F%: %{y}<br>T1 Horse 🏇🏼<extra></extra>",
                         ),
-                        row=1,
-                        col=1,
+                        row=1, col=1,
                     )
             else:
-                # fallback: always above Mike
                 fig.add_trace(
                     go.Scatter(
                         x=intraday.loc[t1_mask, "Time"],
@@ -1200,16 +1225,12 @@ def build_chart(
                         mode="text",
                         text=["🏇🏼"] * int(t1_mask.sum()),
                         textposition="middle center",
-                        textfont=dict(size=22, color="mediumvioletred"),
+                        textfont=dict(size=36, color="mediumvioletred"),
                         name="T1 Horse",
-                        hovertemplate=(
-                            "Time: %{x}<br>"
-                            "F%: %{y}<br>"
-                            "T1 Horse 🏇🏼<extra></extra>"
-                        ),
+                        showlegend=False,
+                        hovertemplate="Time: %{x}<br>F%: %{y}<br>T1 Horse 🏇🏼<extra></extra>",
                     ),
-                    row=1,
-                    col=1,
+                    row=1, col=1,
                 )
 
 
