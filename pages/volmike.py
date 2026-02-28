@@ -583,53 +583,46 @@ def build_chart(
     row=1, col=1,
 )
 
-    # ==========================
-    # RVOL Triangles (F_numeric + 3)
-    # ==========================
+# ==========================
+# RVOL ♘
+# ==========================
     if "RVOL_5" in intraday.columns and "F_numeric" in intraday.columns:
-        mask_rvol_extreme = intraday["RVOL_5"] > 1.8
-        mask_rvol_strong = (intraday["RVOL_5"] >= 1.5) & (intraday["RVOL_5"] < 1.8)
-        mask_rvol_moderate = (intraday["RVOL_5"] >= 1.2) & (intraday["RVOL_5"] < 1.5)
+        mask_rvol = intraday["RVOL_5"] > 1.2
 
-        # Extreme (red)
-        if mask_rvol_extreme.any():
-            scatter_rvol_extreme = go.Scatter(
-                x=intraday.loc[mask_rvol_extreme, "Time"],
-                y=intraday.loc[mask_rvol_extreme, "F_numeric"] + 3,
-                mode="markers",
-                marker=dict(symbol="triangle-up", size=10, color="red"),
-                name="RVOL > 1.8 (Extreme Surge)",
-                text=["Extreme Volume"] * int(mask_rvol_extreme.sum()),
-                hovertemplate="Time: %{x}<br>F%: %{y}<br>%{text}<extra></extra>",
-            )
-            fig.add_trace(scatter_rvol_extreme, row=1, col=1)
+        if mask_rvol.any():
+            if "Kijun_F" in intraday.columns:
+                mike  = pd.to_numeric(intraday["F_numeric"], errors="coerce")
+                kijun = pd.to_numeric(intraday["Kijun_F"],   errors="coerce")
+                above_mask = mask_rvol & (mike >= kijun)
+                below_mask = mask_rvol & (mike <  kijun)
+            else:
+                above_mask = mask_rvol
+                below_mask = pd.Series(False, index=intraday.index)
 
-        # Strong (orange)
-        if mask_rvol_strong.any():
-            scatter_rvol_strong = go.Scatter(
-                x=intraday.loc[mask_rvol_strong, "Time"],
-                y=intraday.loc[mask_rvol_strong, "F_numeric"] + 3,
-                mode="markers",
-                marker=dict(symbol="triangle-up", size=10, color="orange"),
-                name="RVOL 1.5–1.79 (Strong Surge)",
-                text=["Strong Volume"] * int(mask_rvol_strong.sum()),
-                hovertemplate="Time: %{x}<br>F%: %{y}<br>%{text}<extra></extra>",
-            )
-            fig.add_trace(scatter_rvol_strong, row=1, col=1)
-
-        # Moderate (pink)
-        if mask_rvol_moderate.any():
-            scatter_rvol_moderate = go.Scatter(
-                x=intraday.loc[mask_rvol_moderate, "Time"],
-                y=intraday.loc[mask_rvol_moderate, "F_numeric"] + 3,
-                mode="markers",
-                marker=dict(symbol="triangle-up", size=10, color="pink"),
-                name="RVOL 1.2–1.49 (Moderate Surge)",
-                text=["Moderate Volume"] * int(mask_rvol_moderate.sum()),
-                hovertemplate="Time: %{x}<br>F%: %{y}<br>%{text}<extra></extra>",
-            )
-            fig.add_trace(scatter_rvol_moderate, row=1, col=1)
-
+            for mask, pos_offset, textpos, color in [
+                (above_mask, +50, "top center",    "#22c55e"),
+                (below_mask, -50, "bottom center", "#ff3b3b"),
+            ]:
+                if mask.any():
+                    fig.add_trace(
+                        go.Scatter(
+                            x=intraday.loc[mask, "Time"],
+                            y=intraday.loc[mask, "F_numeric"] + pos_offset,
+                            mode="text",
+                            text=["♘"] * int(mask.sum()),
+                            textposition=textpos,
+                            textfont=dict(size=26, color=color),
+                            name="RVOL ♘",
+                            showlegend=False,
+                            customdata=intraday.loc[mask, "RVOL_5"].values,
+                            hovertemplate=(
+                                "Time: %{x}<br>"
+                                "F%: %{y}<br>"
+                                "♘ RVOL: %{customdata:.2f}<extra></extra>"
+                            ),
+                        ),
+                        row=1, col=1,
+                    )
     # TD Supply line (F%)
     if "TD Supply Line F" in intraday.columns:
         fig.add_trace(
