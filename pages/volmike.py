@@ -1131,7 +1131,7 @@ def build_chart(
 
 
 
-   
+
 
     # ==========================
     # 🏇🏼 T1 HORSE MARKER
@@ -1335,31 +1335,31 @@ def build_chart(
                     ),
                     row=1, col=1,
                 )
-    # ==========================
-    # 💰 Goldmine from E1
-    # ==========================
-    if "Goldmine_E1_Emoji" in intraday.columns:
-        gm_mask = intraday["Goldmine_E1_Emoji"] == "💰"
+    # # ==========================
+    # # 💰 Goldmine from E1
+    # # ==========================
+    # if "Goldmine_E1_Emoji" in intraday.columns:
+    #     gm_mask = intraday["Goldmine_E1_Emoji"] == "💰"
 
-        if gm_mask.any():
-            fig.add_trace(
-                go.Scatter(
-                    x=intraday.loc[gm_mask, "Time"],
-                    y=intraday.loc[gm_mask, "F_numeric"] + 120,  # tune offset
-                    mode="text",
-                    text=["💰"] * int(gm_mask.sum()),
-                    textposition="middle center",
-                    textfont=dict(size=18, color="gold"),
-                    name="Goldmine E1",
-                    hovertemplate=(
-                        "Time: %{x}<br>"
-                        "F%: %{y}<br>"
-                        "Goldmine from Entry-1 💰 (+64F gain)"
-                        "<extra></extra>"
-                    ),
-                ),
-                row=1, col=1,
-            )
+    #     if gm_mask.any():
+    #         fig.add_trace(
+    #             go.Scatter(
+    #                 x=intraday.loc[gm_mask, "Time"],
+    #                 y=intraday.loc[gm_mask, "F_numeric"] + 120,  # tune offset
+    #                 mode="text",
+    #                 text=["💰"] * int(gm_mask.sum()),
+    #                 textposition="middle center",
+    #                 textfont=dict(size=18, color="gold"),
+    #                 name="Goldmine E1",
+    #                 hovertemplate=(
+    #                     "Time: %{x}<br>"
+    #                     "F%: %{y}<br>"
+    #                     "Goldmine from Entry-1 💰 (+64F gain)"
+    #                     "<extra></extra>"
+    #                 ),
+    #             ),
+    #             row=1, col=1,
+    #         )
 
 
 
