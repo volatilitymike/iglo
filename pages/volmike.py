@@ -1002,7 +1002,7 @@ def build_chart(
                 y=poc_f_level,
                 line_color="#ff1493",
                 line_dash="dot",
-                line_width=0.7,
+                line_width=0.2,
                 row=1,
                 col=1,
                 # annotation_text="👃🏽 Nose POC",
