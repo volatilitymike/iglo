@@ -610,7 +610,7 @@ def build_chart(
                     mode="text",
                     text=["♕"],
                     textposition="middle center",
-                    textfont=dict(size=26, color=color),
+                    textfont=dict(size=30, color=color),
                     name="♕",
                     showlegend=False,
                     hovertemplate=(
