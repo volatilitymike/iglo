@@ -583,46 +583,45 @@ def build_chart(
     row=1, col=1,
 )
 
-# ==========================
-# RVOL ♘
-# ==========================
-    if "RVOL_5" in intraday.columns and "F_numeric" in intraday.columns:
-        mask_rvol = intraday["RVOL_5"] > 1.2
+    # ==========================
+    # ♕ QUEEN (Kijun Cross)
+    # ==========================
+    if "Kijun_F" in intraday.columns and "F_numeric" in intraday.columns:
+        mike  = pd.to_numeric(intraday["F_numeric"], errors="coerce")
+        kijun = pd.to_numeric(intraday["Kijun_F"],   errors="coerce")
 
-        if mask_rvol.any():
-            if "Kijun_F" in intraday.columns:
-                mike  = pd.to_numeric(intraday["F_numeric"], errors="coerce")
-                kijun = pd.to_numeric(intraday["Kijun_F"],   errors="coerce")
-                above_mask = mask_rvol & (mike >= kijun)
-                below_mask = mask_rvol & (mike <  kijun)
-            else:
-                above_mask = mask_rvol
-                below_mask = pd.Series(False, index=intraday.index)
+        for i in range(1, len(intraday)):
+            m0, m1 = mike.iloc[i], mike.iloc[i - 1]
+            k0, k1 = kijun.iloc[i], kijun.iloc[i - 1]
+            if any(pd.isna(v) for v in [m0, m1, k0, k1]):
+                continue
 
-            for mask, pos_offset, textpos, color in [
-                (above_mask, +50, "top center",    "#22c55e"),
-                (below_mask, -50, "bottom center", "#ff3b3b"),
-            ]:
-                if mask.any():
-                    fig.add_trace(
-                        go.Scatter(
-                            x=intraday.loc[mask, "Time"],
-                            y=intraday.loc[mask, "F_numeric"] + pos_offset,
-                            mode="text",
-                            text=["♘"] * int(mask.sum()),
-                            textposition=textpos,
-                            textfont=dict(size=26, color=color),
-                            name="RVOL ♘",
-                            showlegend=False,
-                            customdata=intraday.loc[mask, "RVOL_5"].values,
-                            hovertemplate=(
-                                "Time: %{x}<br>"
-                                "F%: %{y}<br>"
-                                "♘ RVOL: %{customdata:.2f}<extra></extra>"
-                            ),
-                        ),
-                        row=1, col=1,
-                    )
+            up_cross   = m1 < k1 and m0 >= k0
+            down_cross = m1 > k1 and m0 <= k0
+            if not up_cross and not down_cross:
+                continue
+
+            color = "#22c55e" if up_cross else "#ff3b3b"
+
+            fig.add_trace(
+                go.Scatter(
+                    x=[intraday["Time"].iloc[i]],
+                    y=[mike.iloc[i]],
+                    mode="text",
+                    text=["♕"],
+                    textposition="middle center",
+                    textfont=dict(size=26, color=color),
+                    name="♕",
+                    showlegend=False,
+                    hovertemplate=(
+                        "Time: %{x}<br>"
+                        "F%: %{y}<br>"
+                        f"♕ {'↑' if up_cross else '↓'}"
+                        "<extra></extra>"
+                    ),
+                ),
+                row=1, col=1,
+            )
     # TD Supply line (F%)
     if "TD Supply Line F" in intraday.columns:
         fig.add_trace(
