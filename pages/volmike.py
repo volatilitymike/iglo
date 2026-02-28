@@ -781,28 +781,43 @@ def build_chart(
                     )
 
 
-    # 🟢 BBW Expansion Alerts
-    if {"BBW Alert", "BBW_Ratio"}.issubset(intraday.columns):
+        # BBW Expansion ♗
+    if "BBW Alert" in intraday.columns:
         mask_bbw_alert = intraday["BBW Alert"] != ""
 
         if mask_bbw_alert.any():
-            scatter_bbw_alert = go.Scatter(
-                x=intraday.loc[mask_bbw_alert, "Time"],
-                y=intraday.loc[mask_bbw_alert, "F_numeric"] - 16,  # small offset
-                mode="text",
-                text=intraday.loc[mask_bbw_alert, "BBW Alert"],
-                textposition="bottom center",
-                textfont=dict(size=12),
-                name="BBW Expansion Alert",
-                hovertemplate=(
-                    "Time: %{x}<br>"
-                    "BBW Ratio: %{customdata:.2f}<extra></extra>"
-                ),
-                customdata=intraday.loc[mask_bbw_alert, "BBW_Ratio"],
-            )
+            if "Kijun_F" in intraday.columns:
+                mike  = pd.to_numeric(intraday["F_numeric"], errors="coerce")
+                kijun = pd.to_numeric(intraday["Kijun_F"],   errors="coerce")
+                above_mask = mask_bbw_alert & (mike >= kijun)
+                below_mask = mask_bbw_alert & (mike <  kijun)
+            else:
+                above_mask = mask_bbw_alert
+                below_mask = pd.Series(False, index=intraday.index)
 
-            fig.add_trace(scatter_bbw_alert, row=1, col=1)
-
+            for mask, pos_offset, textpos, color in [
+                (above_mask, +50, "top center",    "#22c55e"),
+                (below_mask, -50, "bottom center", "#ff3b3b"),
+            ]:
+                if mask.any():
+                    fig.add_trace(
+                        go.Scatter(
+                            x=intraday.loc[mask, "Time"],
+                            y=intraday.loc[mask, "F_numeric"] + pos_offset,
+                            mode="text",
+                            text=["♗"] * int(mask.sum()),
+                            textposition=textpos,
+                            textfont=dict(size=24, color=color),
+                            name="BBW Expansion ♗",
+                            showlegend=False,
+                            hovertemplate=(
+                                "Time: %{x}<br>"
+                                "F%: %{y}<br>"
+                                "♗ BBW Expansion<extra></extra>"
+                            ),
+                        ),
+                        row=1, col=1,
+                    )
     # ==========================
     # Marengo ♞ (North & South)
     # ==========================
@@ -1168,83 +1183,83 @@ def build_chart(
                     col=1,
                 )
 
-    # ==========================
-    # 🚪 T0 DOOR MARKER (relative to Kijun)
-    # ==========================
-    if "T0_Emoji" in intraday.columns:
-        t0_mask = intraday["T0_Emoji"] == "🚪"
+    # # ==========================
+    # # 🚪 T0 DOOR MARKER (relative to Kijun)
+    # # ==========================
+    # if "T0_Emoji" in intraday.columns:
+    #     t0_mask = intraday["T0_Emoji"] == "🚪"
 
-        if t0_mask.any():
-            offset = 50  # how far above/below Mike
+    #     if t0_mask.any():
+    #         offset = 50  # how far above/below Mike
 
-            if "Kijun_F" in intraday.columns:
-                mike = pd.to_numeric(intraday["F_numeric"], errors="coerce")
-                kijun = pd.to_numeric(intraday["Kijun_F"], errors="coerce")
+    #         if "Kijun_F" in intraday.columns:
+    #             mike = pd.to_numeric(intraday["F_numeric"], errors="coerce")
+    #             kijun = pd.to_numeric(intraday["Kijun_F"], errors="coerce")
 
-                below_mask = t0_mask & (mike < kijun)
-                above_mask = t0_mask & (mike >= kijun)
+    #             below_mask = t0_mask & (mike < kijun)
+    #             above_mask = t0_mask & (mike >= kijun)
 
-                # 🚪 under Mike when below Kijun
-                if below_mask.any():
-                    fig.add_trace(
-                        go.Scatter(
-                            x=intraday.loc[below_mask, "Time"],
-                            y=intraday.loc[below_mask, "F_numeric"] - offset,
-                            mode="text",
-                            text=["🚪"] * int(below_mask.sum()),
-                            textposition="middle left",
-                            textfont=dict(size=18, color="orange"),
-                            name="T0 Door",
-                            hovertemplate=(
-                                "Time: %{x}<br>"
-                                "F%: %{y}<br>"
-                                "T0 Door 🚪<extra></extra>"
-                            ),
-                        ),
-                        row=1,
-                        col=1,
-                    )
+    #             # 🚪 under Mike when below Kijun
+    #             if below_mask.any():
+    #                 fig.add_trace(
+    #                     go.Scatter(
+    #                         x=intraday.loc[below_mask, "Time"],
+    #                         y=intraday.loc[below_mask, "F_numeric"] - offset,
+    #                         mode="text",
+    #                         text=["🚪"] * int(below_mask.sum()),
+    #                         textposition="middle left",
+    #                         textfont=dict(size=18, color="orange"),
+    #                         name="T0 Door",
+    #                         hovertemplate=(
+    #                             "Time: %{x}<br>"
+    #                             "F%: %{y}<br>"
+    #                             "T0 Door 🚪<extra></extra>"
+    #                         ),
+    #                     ),
+    #                     row=1,
+    #                     col=1,
+    #                 )
 
-                # 🚪 above Mike when above Kijun
-                if above_mask.any():
-                    fig.add_trace(
-                        go.Scatter(
-                            x=intraday.loc[above_mask, "Time"],
-                            y=intraday.loc[above_mask, "F_numeric"] + offset,
-                            mode="text",
-                            text=["🚪"] * int(above_mask.sum()),
-                            textposition="middle left",
-                            textfont=dict(size=18, color="orange"),
-                            name="T0 Door",
-                            hovertemplate=(
-                                "Time: %{x}<br>"
-                                "F%: %{y}<br>"
-                                "T0 Door 🚪<extra></extra>"
-                            ),
-                        ),
-                        row=1,
-                        col=1,
-                    )
-            else:
-                # fallback: always under Mike
-                fig.add_trace(
-                    go.Scatter(
-                        x=intraday.loc[t0_mask, "Time"],
-                        y=intraday.loc[t0_mask, "F_numeric"] - offset,
-                        mode="text",
-                        text=["🚪"] * int(t0_mask.sum()),
-                        textposition="middle left",
-                        textfont=dict(size=18, color="orange"),
-                        name="T0 Door",
-                        hovertemplate=(
-                            "Time: %{x}<br>"
-                            "F%: %{y}<br>"
-                            "T0 Door 🚪<extra></extra>"
-                        ),
-                    ),
-                    row=1,
-                    col=1,
-                )
+            #     # 🚪 above Mike when above Kijun
+            #     if above_mask.any():
+            #         fig.add_trace(
+            #             go.Scatter(
+            #                 x=intraday.loc[above_mask, "Time"],
+            #                 y=intraday.loc[above_mask, "F_numeric"] + offset,
+            #                 mode="text",
+            #                 text=["🚪"] * int(above_mask.sum()),
+            #                 textposition="middle left",
+            #                 textfont=dict(size=18, color="orange"),
+            #                 name="T0 Door",
+            #                 hovertemplate=(
+            #                     "Time: %{x}<br>"
+            #                     "F%: %{y}<br>"
+            #                     "T0 Door 🚪<extra></extra>"
+            #                 ),
+            #             ),
+            #             row=1,
+            #             col=1,
+            #         )
+            # else:
+            #     # fallback: always under Mike
+            #     fig.add_trace(
+            #         go.Scatter(
+            #             x=intraday.loc[t0_mask, "Time"],
+            #             y=intraday.loc[t0_mask, "F_numeric"] - offset,
+            #             mode="text",
+            #             text=["🚪"] * int(t0_mask.sum()),
+            #             textposition="middle left",
+            #             textfont=dict(size=18, color="orange"),
+            #             name="T0 Door",
+            #             hovertemplate=(
+            #                 "Time: %{x}<br>"
+            #                 "F%: %{y}<br>"
+            #                 "T0 Door 🚪<extra></extra>"
+            #             ),
+            #         ),
+            #         row=1,
+            #         col=1,
+            #     )
 
     # ==========================
     # 🏇🏼 T1 HORSE MARKER
