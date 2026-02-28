@@ -935,7 +935,7 @@ def build_chart(
                     x=intraday["Time"],
                     y=[ib_mid_third] * len(intraday),
                     mode="lines",
-                    line=dict(color="#d3d3d3", dash="dot", width=0.2),
+                    line=dict(color="#d3d3d3", dash="dot", width=0.5),
                     name="IB Mid Third",
                     showlegend=False,
                 ),
@@ -948,7 +948,7 @@ def build_chart(
                     x=intraday["Time"],
                     y=[ib_upper_third] * len(intraday),
                     mode="lines",
-                    line=dict(color="#d3d3d3", dash="dot", width=0.2),
+                    line=dict(color="#d3d3d3", dash="dot", width=0.5),
                     name="IB Upper Third",
                     showlegend=False,
                 ),
@@ -985,31 +985,31 @@ def build_chart(
                     row=1, col=1,
                 )
 
-    # # 👃🏽 Nose and 🦻🏼 Ear from market profile df
-    # if not mp_df.empty:
-    #     # Ensure columns exist
-    #     for col in ["F% Level", "TPO_Count", "%Vol", "🦻🏼", "👃🏽", "Time"]:
-    #         if col not in mp_df.columns:
-    #             mp_df[col] = 0 if col in ["TPO_Count", "%Vol"] else ""
+    # 👃🏽 Nose and 🦻🏼 Ear from market profile df
+    if not mp_df.empty:
+        # Ensure columns exist
+        for col in ["F% Level", "TPO_Count", "%Vol", "🦻🏼", "👃🏽", "Time"]:
+            if col not in mp_df.columns:
+                mp_df[col] = 0 if col in ["TPO_Count", "%Vol"] else ""
 
-    #     # Nose POC (by time / letters)
-    #     nose_row = mp_df.sort_values(by="TPO_Count", ascending=False).head(1)
-    #     if not nose_row.empty:
-    #         poc_f_level = int(nose_row["F% Level"].iat[0])
-    #         nose_time = nose_row["Time"].iat[0]
+        # Nose POC (by time / letters)
+        nose_row = mp_df.sort_values(by="TPO_Count", ascending=False).head(1)
+        if not nose_row.empty:
+            poc_f_level = int(nose_row["F% Level"].iat[0])
+            nose_time = nose_row["Time"].iat[0]
 
-    #         fig.add_hline(
-    #             y=poc_f_level,
-    #             line_color="#ff1493",
-    #             line_dash="dot",
-    #             line_width=0.7,
-    #             row=1,
-    #             col=1,
-    #             # annotation_text="👃🏽 Nose POC",
-    #             annotation_position="top right",
-    #             annotation_font_color="#ff1493",
-    #             showlegend=False,
-    #         )
+            fig.add_hline(
+                y=poc_f_level,
+                line_color="#ff1493",
+                line_dash="dot",
+                line_width=0.7,
+                row=1,
+                col=1,
+                # annotation_text="👃🏽 Nose POC",
+                annotation_position="top right",
+                annotation_font_color="#ff1493",
+                showlegend=False,
+            )
 
 
 
