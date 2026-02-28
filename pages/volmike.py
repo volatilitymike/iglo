@@ -747,27 +747,45 @@ def build_chart(
 
 
 
-    # 🐝 BBW Tight → bees above Mike
+    # 🐝 BBW Tight → ♗ above/below Mike
     if "BBW_Tight_Emoji" in intraday.columns:
         mask_bbw_tight = intraday["BBW_Tight_Emoji"] == "🐝"
 
         if mask_bbw_tight.any():
-            scatter_bishop_tight = go.Scatter(
-                x=intraday.loc[mask_bbw_tight, "Time"],
-                y=intraday.loc[mask_bbw_tight, "F_numeric"] + 50,  # vertical offset
-                mode="text",
-                text=["🐝"] * int(mask_bbw_tight.sum()),
-                textposition="top center",
-                textfont=dict(size=12, color="mediumvioletred"),
-                name="BBW Tight (🐝)",
-                hovertemplate=(
-                    "Time: %{x}<br>"
-                    "F%: %{y:.2f}<br>"
-                    "BBW Tight Compression 🐝<extra></extra>"
-                ),
-            )
-            fig.add_trace(scatter_bishop_tight, row=1, col=1)
+            if "Kijun_F" in intraday.columns:
+                mike  = pd.to_numeric(intraday["F_numeric"], errors="coerce")
+                kijun = pd.to_numeric(intraday["Kijun_F"],   errors="coerce")
+                above_mask = mask_bbw_tight & (mike >= kijun)
+                below_mask = mask_bbw_tight & (mike <  kijun)
+            else:
+                above_mask = mask_bbw_tight
+                below_mask = pd.Series(False, index=intraday.index)
 
+            offset = 50
+
+            for mask, pos_offset, textpos in [
+                (above_mask, +offset, "top center"),
+                (below_mask, -offset, "bottom center"),
+            ]:
+                if mask.any():
+                    fig.add_trace(
+                        go.Scatter(
+                            x=intraday.loc[mask, "Time"],
+                            y=intraday.loc[mask, "F_numeric"] + pos_offset,
+                            mode="text",
+                            text=["♗"] * int(mask.sum()),
+                            textposition=textpos,
+                            textfont=dict(size=22, color="#FACC15"),
+                            name="BBW Tight ♗",
+                            showlegend=False,
+                            hovertemplate=(
+                                "Time: %{x}<br>"
+                                "F%: %{y:.2f}<br>"
+                                "BBW Tight Squeeze ♗<extra></extra>"
+                            ),
+                        ),
+                        row=1, col=1,
+                    )
 
 
     # 🟢 BBW Expansion Alerts
