@@ -103,12 +103,11 @@ def _window_analysis(
     pre_h:  list[float] = []
     post_h: list[float] = []
 
-    rvol_col = next((c for c in ("RVOL_5", "RVOL", "rvol") if c in intraday.columns), None)
+    rvol_col =  rv_col
     has_kijun_col = "Kijun_F" in intraday.columns
 
     for pos in range(start, end + 1):
-        if pos == center_pos:
-            continue
+
         tb = pre_b  if pos < center_pos else post_b
         th = pre_h  if pos < center_pos else post_h
 
