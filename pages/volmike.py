@@ -81,7 +81,7 @@ tickers = st.sidebar.multiselect(
     default=["NVDA"],
 )
 
-start_date = st.sidebar.date_input("Start Date", value=date(2026, 11, 1))
+start_date = st.sidebar.date_input("Start Date", value=date(2025, 11, 1))
 end_date = st.sidebar.date_input("End Date", value=date.today())
 
 timeframe = st.sidebar.selectbox(
