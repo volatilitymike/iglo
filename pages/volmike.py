@@ -2913,120 +2913,243 @@ def build_chart(
 
 
 
+    # # =============================
+    # # 🎯 ENTRY MARKERS (PUT / CALL)
+    # # =============================
+
+    # # --- PUT 🎯 / 🎯2 / 🎯3 ---
+    # if "Put_FirstEntry_Emoji" in intraday.columns:
+    #     first_entry_mask = intraday["Put_FirstEntry_Emoji"] == "🎯"
+    #     if first_entry_mask.any():
+    #         fig.add_trace(
+    #             go.Scatter(
+    #                 x=intraday.loc[first_entry_mask, "Time"],
+    #                 y=intraday.loc[first_entry_mask, "F_numeric"] - 34,
+    #                 mode="text",
+    #                 text=intraday.loc[first_entry_mask, "Put_FirstEntry_Emoji"],
+    #                 textposition="top center",
+    #                 textfont=dict(size=24),
+    #                 name="🎯 Put Entry 1",
+    #                 showlegend=False,
+    #                 hovertemplate="Time: %{x}<br>F%: %{y}<extra></extra>",
+    #             ),
+    #             row=1, col=1,
+    #         )
+
+    # if "Put_SecondEntry_Emoji" in intraday.columns:
+    #     second_entry_mask = intraday["Put_SecondEntry_Emoji"] == "🎯2"
+    #     if second_entry_mask.any():
+    #         fig.add_trace(
+    #             go.Scatter(
+    #                 x=intraday.loc[second_entry_mask, "Time"],
+    #                 y=intraday.loc[second_entry_mask, "F_numeric"] - 34,
+    #                 mode="text",
+    #                 text=intraday.loc[second_entry_mask, "Put_SecondEntry_Emoji"],
+    #                 textposition="top center",
+    #                 textfont=dict(size=24),
+    #                 name="🎯2 Put Entry 2",
+    #                 showlegend=False,
+    #                 hovertemplate="Time: %{x}<br>F%: %{y}<extra></extra>",
+    #             ),
+    #             row=1, col=1,
+    #         )
+
+    # if "Put_ThirdEntry_Emoji" in intraday.columns:
+    #     third_entry_mask = intraday["Put_ThirdEntry_Emoji"] == "🎯3"
+    #     if third_entry_mask.any():
+    #         fig.add_trace(
+    #             go.Scatter(
+    #                 x=intraday.loc[third_entry_mask, "Time"],
+    #                 y=intraday.loc[third_entry_mask, "F_numeric"] - 34,
+    #                 mode="text",
+    #                 text=intraday.loc[third_entry_mask, "Put_ThirdEntry_Emoji"],
+    #                 textposition="top center",
+    #                 textfont=dict(size=24),
+    #                 name="🎯3 Put Entry 3",
+    #                 showlegend=False,
+    #                 hovertemplate="Time: %{x}<br>F%: %{y}<extra></extra>",
+    #             ),
+    #             row=1, col=1,
+    #         )
+
+    # # --- CALL 🎯 / 🎯2 / 🎯3 ---
+    # if "Call_FirstEntry_Emoji" in intraday.columns:
+    #     call1_mask = intraday["Call_FirstEntry_Emoji"] == "🎯"
+    #     if call1_mask.any():
+    #         fig.add_trace(
+    #             go.Scatter(
+    #                 x=intraday.loc[call1_mask, "Time"],
+    #                 y=intraday.loc[call1_mask, "F_numeric"] + 34,
+    #                 mode="text",
+    #                 text=intraday.loc[call1_mask, "Call_FirstEntry_Emoji"],
+    #                 textposition="top center",
+    #                 textfont=dict(size=24),
+    #                 name="🎯 Call Entry 1",
+    #                 showlegend=False,
+    #                 hovertemplate="Time: %{x}<br>F%: %{y}<extra></extra>",
+    #             ),
+    #             row=1, col=1,
+    #         )
+
+    # if "Call_SecondEntry_Emoji" in intraday.columns:
+    #     call2_mask = intraday["Call_SecondEntry_Emoji"] == "🎯2"
+    #     if call2_mask.any():
+    #         fig.add_trace(
+    #             go.Scatter(
+    #                 x=intraday.loc[call2_mask, "Time"],
+    #                 y=intraday.loc[call2_mask, "F_numeric"] + 34,
+    #                 mode="text",
+    #                 text=intraday.loc[call2_mask, "Call_SecondEntry_Emoji"],
+    #                 textposition="top center",
+    #                 textfont=dict(size=24),
+    #                 name="🎯2 Call Entry 2",
+    #                 showlegend=False,
+    #                 hovertemplate="Time: %{x}<br>F%: %{y}<extra></extra>",
+    #             ),
+    #             row=1, col=1,
+    #         )
+
+    # if "Call_ThirdEntry_Emoji" in intraday.columns:
+    #     call3_mask = intraday["Call_ThirdEntry_Emoji"] == "🎯3"
+    #     if call3_mask.any():
+    #         fig.add_trace(
+    #             go.Scatter(
+    #                 x=intraday.loc[call3_mask, "Time"],
+    #                 y=intraday.loc[call3_mask, "F_numeric"] + 34,
+    #                 mode="text",
+    #                 text=intraday.loc[call3_mask, "Call_ThirdEntry_Emoji"],
+    #                 textposition="top center",
+    #                 textfont=dict(size=24),
+    #                 name="🎯3 Call Entry 3",
+    #                 showlegend=False,
+    #                 hovertemplate="Time: %{x}<br>F%: %{y}<extra></extra>",
+    #             ),
+    #             row=1, col=1,
+    #         )
+
+
+
     # =============================
     # 🎯 ENTRY MARKERS (PUT / CALL)
     # =============================
 
-    # --- PUT 🎯 / 🎯2 / 🎯3 ---
-    if "Put_FirstEntry_Emoji" in intraday.columns:
-        first_entry_mask = intraday["Put_FirstEntry_Emoji"] == "🎯"
-        if first_entry_mask.any():
-            fig.add_trace(
-                go.Scatter(
-                    x=intraday.loc[first_entry_mask, "Time"],
-                    y=intraday.loc[first_entry_mask, "F_numeric"] - 34,
-                    mode="text",
-                    text=intraday.loc[first_entry_mask, "Put_FirstEntry_Emoji"],
-                    textposition="top center",
-                    textfont=dict(size=24),
-                    name="🎯 Put Entry 1",
-                    showlegend=False,
-                    hovertemplate="Time: %{x}<br>F%: %{y}<extra></extra>",
-                ),
-                row=1, col=1,
-            )
+    for side, offset, cols in [
+        ("call", +34, {
+            "exec":    "Call_FirstEntry_Emoji",
+            "hold":    "Call_FirstEntry_Emoji",
+            "reclaim": "Call_DeferredEntry_Emoji",
+            "e2":      "Call_SecondEntry_Emoji",
+            "e3":      "Call_ThirdEntry_Emoji",
+        }),
+        ("put", -34, {
+            "exec":    "Put_FirstEntry_Emoji",
+            "hold":    "Put_FirstEntry_Emoji",
+            "reclaim": "Put_DeferredEntry_Emoji",
+            "e2":      "Put_SecondEntry_Emoji",
+            "e3":      "Put_ThirdEntry_Emoji",
+        }),
+    ]:
+        label = side.upper()
 
-    if "Put_SecondEntry_Emoji" in intraday.columns:
-        second_entry_mask = intraday["Put_SecondEntry_Emoji"] == "🎯2"
-        if second_entry_mask.any():
-            fig.add_trace(
-                go.Scatter(
-                    x=intraday.loc[second_entry_mask, "Time"],
-                    y=intraday.loc[second_entry_mask, "F_numeric"] - 34,
-                    mode="text",
-                    text=intraday.loc[second_entry_mask, "Put_SecondEntry_Emoji"],
-                    textposition="top center",
-                    textfont=dict(size=24),
-                    name="🎯2 Put Entry 2",
-                    showlegend=False,
-                    hovertemplate="Time: %{x}<br>F%: %{y}<extra></extra>",
-                ),
-                row=1, col=1,
-            )
+        # 🎯 EXEC
+        col = cols["exec"]
+        if col in intraday.columns:
+            mask = intraday[col] == "🎯"
+            if mask.any():
+                fig.add_trace(
+                    go.Scatter(
+                        x=intraday.loc[mask, "Time"],
+                        y=intraday.loc[mask, "F_numeric"] + offset,
+                        mode="text",
+                        text=["🎯"] * int(mask.sum()),
+                        textposition="middle center",
+                        textfont=dict(size=24),
+                        name=f"🎯 E1 {label}",
+                        showlegend=False,
+                        hovertemplate=f"Time: %{{x}}<br>F%: %{{y}}<br>🎯 Entry 1 {label}<extra></extra>",
+                    ),
+                    row=1, col=1,
+                )
 
-    if "Put_ThirdEntry_Emoji" in intraday.columns:
-        third_entry_mask = intraday["Put_ThirdEntry_Emoji"] == "🎯3"
-        if third_entry_mask.any():
-            fig.add_trace(
-                go.Scatter(
-                    x=intraday.loc[third_entry_mask, "Time"],
-                    y=intraday.loc[third_entry_mask, "F_numeric"] - 34,
-                    mode="text",
-                    text=intraday.loc[third_entry_mask, "Put_ThirdEntry_Emoji"],
-                    textposition="top center",
-                    textfont=dict(size=24),
-                    name="🎯3 Put Entry 3",
-                    showlegend=False,
-                    hovertemplate="Time: %{x}<br>F%: %{y}<extra></extra>",
-                ),
-                row=1, col=1,
-            )
+        # ⏳ HOLD
+        col = cols["hold"]
+        if col in intraday.columns:
+            mask = intraday[col] == "⏳"
+            if mask.any():
+                fig.add_trace(
+                    go.Scatter(
+                        x=intraday.loc[mask, "Time"],
+                        y=intraday.loc[mask, "F_numeric"] + offset,
+                        mode="text",
+                        text=["⏳"] * int(mask.sum()),
+                        textposition="middle center",
+                        textfont=dict(size=24),
+                        name=f"⏳ HOLD {label}",
+                        showlegend=False,
+                        hovertemplate=f"Time: %{{x}}<br>F%: %{{y}}<br>⏳ Blocked E1 {label}<extra></extra>",
+                    ),
+                    row=1, col=1,
+                )
 
-    # --- CALL 🎯 / 🎯2 / 🎯3 ---
-    if "Call_FirstEntry_Emoji" in intraday.columns:
-        call1_mask = intraday["Call_FirstEntry_Emoji"] == "🎯"
-        if call1_mask.any():
-            fig.add_trace(
-                go.Scatter(
-                    x=intraday.loc[call1_mask, "Time"],
-                    y=intraday.loc[call1_mask, "F_numeric"] + 34,
-                    mode="text",
-                    text=intraday.loc[call1_mask, "Call_FirstEntry_Emoji"],
-                    textposition="top center",
-                    textfont=dict(size=24),
-                    name="🎯 Call Entry 1",
-                    showlegend=False,
-                    hovertemplate="Time: %{x}<br>F%: %{y}<extra></extra>",
-                ),
-                row=1, col=1,
-            )
+        # 🧿 RECLAIM
+        col = cols["reclaim"]
+        if col in intraday.columns:
+            mask = intraday[col] == "🧿"
+            if mask.any():
+                fig.add_trace(
+                    go.Scatter(
+                        x=intraday.loc[mask, "Time"],
+                        y=intraday.loc[mask, "F_numeric"] + offset,
+                        mode="text",
+                        text=["🧿"] * int(mask.sum()),
+                        textposition="middle center",
+                        textfont=dict(size=24),
+                        name=f"🧿 RECLAIM {label}",
+                        showlegend=False,
+                        hovertemplate=f"Time: %{{x}}<br>F%: %{{y}}<br>🧿 Reclaim {label}<extra></extra>",
+                    ),
+                    row=1, col=1,
+                )
 
-    if "Call_SecondEntry_Emoji" in intraday.columns:
-        call2_mask = intraday["Call_SecondEntry_Emoji"] == "🎯2"
-        if call2_mask.any():
-            fig.add_trace(
-                go.Scatter(
-                    x=intraday.loc[call2_mask, "Time"],
-                    y=intraday.loc[call2_mask, "F_numeric"] + 34,
-                    mode="text",
-                    text=intraday.loc[call2_mask, "Call_SecondEntry_Emoji"],
-                    textposition="top center",
-                    textfont=dict(size=24),
-                    name="🎯2 Call Entry 2",
-                    showlegend=False,
-                    hovertemplate="Time: %{x}<br>F%: %{y}<extra></extra>",
-                ),
-                row=1, col=1,
-            )
+        # 🎯2 E2
+        col = cols["e2"]
+        if col in intraday.columns:
+            mask = intraday[col] == "🎯2"
+            if mask.any():
+                fig.add_trace(
+                    go.Scatter(
+                        x=intraday.loc[mask, "Time"],
+                        y=intraday.loc[mask, "F_numeric"] + offset,
+                        mode="text",
+                        text=["🎯2"] * int(mask.sum()),
+                        textposition="middle center",
+                        textfont=dict(size=24),
+                        name=f"🎯2 E2 {label}",
+                        showlegend=False,
+                        hovertemplate=f"Time: %{{x}}<br>F%: %{{y}}<br>🎯2 Entry 2 {label}<extra></extra>",
+                    ),
+                    row=1, col=1,
+                )
 
-    if "Call_ThirdEntry_Emoji" in intraday.columns:
-        call3_mask = intraday["Call_ThirdEntry_Emoji"] == "🎯3"
-        if call3_mask.any():
-            fig.add_trace(
-                go.Scatter(
-                    x=intraday.loc[call3_mask, "Time"],
-                    y=intraday.loc[call3_mask, "F_numeric"] + 34,
-                    mode="text",
-                    text=intraday.loc[call3_mask, "Call_ThirdEntry_Emoji"],
-                    textposition="top center",
-                    textfont=dict(size=24),
-                    name="🎯3 Call Entry 3",
-                    showlegend=False,
-                    hovertemplate="Time: %{x}<br>F%: %{y}<extra></extra>",
-                ),
-                row=1, col=1,
-            )
-
+        # 🎯3 E3
+        col = cols["e3"]
+        if col in intraday.columns:
+            mask = intraday[col] == "🎯3"
+            if mask.any():
+                fig.add_trace(
+                    go.Scatter(
+                        x=intraday.loc[mask, "Time"],
+                        y=intraday.loc[mask, "F_numeric"] + offset,
+                        mode="text",
+                        text=["🎯3"] * int(mask.sum()),
+                        textposition="middle center",
+                        textfont=dict(size=24),
+                        name=f"🎯3 E3 {label}",
+                        showlegend=False,
+                        hovertemplate=f"Time: %{{x}}<br>F%: %{{y}}<br>🎯3 Entry 3 {label}<extra></extra>",
+                    ),
+                    row=1, col=1,
+                )
 
 
 
