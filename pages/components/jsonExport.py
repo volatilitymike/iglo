@@ -95,20 +95,38 @@ def extract_entries(intraday: pd.DataFrame, perimeter: int = 4) -> dict:
                     target_h.append(round(float(rv), 2))
 
             z3_on = False
-            if z3_col is not None:
-                s = pd.to_numeric(
-                intraday[z3_col].iloc[
-                    max(0, center_pos - perimeter) : min(n - 1, center_pos + perimeter) + 1
-                ],
-                errors="coerce",
-            )
-            z3_on = bool((s.abs() >= 1.5).any())
+            z3_value = None
+            z3_last3_value = None
 
-        return {
-            "pre":  {"bishops": {k: v for k, v in pre_bishops.items()  if v > 0}, "horses": {"count": len(pre_horses),  "rvolValues": pre_horses}},
-            "post": {"bishops": {k: v for k, v in post_bishops.items() if v > 0}, "horses": {"count": len(post_horses), "rvolValues": post_horses}},
-            "z3On": z3_on,
-        }
+            if z3_col is not None:
+                lo = max(0, center_pos - perimeter)
+                hi = min(n - 1, center_pos + perimeter)
+
+                # window (same window used to decide z3On)
+                s = pd.to_numeric(intraday[z3_col].iloc[lo : hi + 1], errors="coerce")
+
+                if s.notna().any():
+                    # strongest (abs) in the window → store the signed value (e.g., -1.53)
+                    idx = s.abs().idxmax()
+                    z3_value = float(s.loc[idx])
+                    z3_on = abs(z3_value) >= 1.5
+
+                # "last 3" bars after entry (entry bar + next 2 bars)
+                s3 = pd.to_numeric(
+                    intraday[z3_col].iloc[center_pos : min(n - 1, center_pos + 2) + 1],
+                    errors="coerce",
+                )
+                if s3.notna().any():
+                    idx3 = s3.abs().idxmax()
+                    z3_last3_value = float(s3.loc[idx3])
+
+            return {
+                "pre":  {"bishops": {k: v for k, v in pre_bishops.items()  if v > 0}, "horses": {"count": len(pre_horses),  "rvolValues": pre_horses}},
+                "post": {"bishops": {k: v for k, v in post_bishops.items() if v > 0}, "horses": {"count": len(post_horses), "rvolValues": post_horses}},
+                "z3On": z3_on,
+                "z3Value": z3_value,          # strongest Z3 in ±perimeter window
+                "z3ValueLast3": z3_last3_value # strongest Z3 in last 3 bars from entry
+            }
 
     def add_entry(target, label, idx, with_perimeter=False):
         pos = intraday.index.get_loc(idx)
