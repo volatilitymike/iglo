@@ -38,59 +38,129 @@ def human_volume(n):
         return f"{n/1_000:.2f}K"
     else:
         return str(int(n))
-def extract_entries(intraday: pd.DataFrame) -> dict:
+def extract_entries(intraday: pd.DataFrame, perimeter: int = 4) -> dict:
     call_entries = []
     put_entries  = []
-
-    def add_entry(target, label, idx):
-        target.append({
-            "type":  label,
-            "time":  pd.to_datetime(intraday.at[idx, "Time"]).strftime("%H:%M"),
-            "price": float(intraday.at[idx, "Close"]),
-            "fLevel": float(intraday.at[idx, "F_numeric"]),
-        })
+    n = len(intraday)
 
     def col(name):
         return intraday[name] if name in intraday.columns else pd.Series("", index=intraday.index)
 
+    # resolve columns once
+    rv_col      = next((c for c in ("RVOL_5", "RVOL", "rvol") if c in intraday.columns), None)
+    z3_col      = next((c for c in ("Z3_Score", "z3", "Z3", "Z3_score") if c in intraday.columns), None)
+    has_tight   = "BBW_Tight_Emoji" in intraday.columns
+    has_std     = "STD_Alert"        in intraday.columns
+    has_bbw_exp = "BBW Alert"        in intraday.columns
+    has_kijun   = "Kijun_F"          in intraday.columns
+    f           = pd.to_numeric(intraday["F_numeric"], errors="coerce")
+
+    def window_analysis(center_pos: int) -> dict:
+        start = max(0, center_pos - perimeter)
+        end   = min(n - 1, center_pos + perimeter)
+        pre_bishops  = {"yellow": 0, "purple": 0, "green": 0, "red": 0}
+        post_bishops = {"yellow": 0, "purple": 0, "green": 0, "red": 0}
+        pre_horses, post_horses = [], []
+
+        for pos in range(start, end + 1):
+            if pos == center_pos:
+                continue
+            target_b = pre_bishops  if pos < center_pos else post_bishops
+            target_h = pre_horses   if pos < center_pos else post_horses
+
+            if has_tight:
+                val = intraday["BBW_Tight_Emoji"].iat[pos]
+                if isinstance(val, str) and val.strip() == "🐝":
+                    target_b["yellow"] += 1
+
+            if has_std:
+                val = intraday["STD_Alert"].iat[pos]
+                if isinstance(val, str) and val.strip() not in ("", "nan"):
+                    target_b["purple"] += 1
+
+            if has_bbw_exp:
+                val = intraday["BBW Alert"].iat[pos]
+                if isinstance(val, str) and val.strip() not in ("", "nan"):
+                    fv = f.iat[pos]
+                    kv = pd.to_numeric(intraday["Kijun_F"].iat[pos], errors="coerce") if has_kijun else float("nan")
+                    if pd.notna(fv) and pd.notna(kv):
+                        if fv >= kv: target_b["green"] += 1
+                        else:        target_b["red"]   += 1
+                    else:
+                        target_b["green"] += 1
+
+            if rv_col is not None:
+                rv = pd.to_numeric(intraday[rv_col].iat[pos], errors="coerce")
+                if pd.notna(rv) and rv > 1.2:
+                    target_h.append(round(float(rv), 2))
+
+        z3_val = None
+        if z3_col is not None:
+            z3_val = pd.to_numeric(intraday[z3_col].iat[center_pos], errors="coerce")
+        z3_on = bool(pd.notna(z3_val) and abs(float(z3_val)) >= 1.5)
+
+        return {
+            "pre":  {"bishops": {k: v for k, v in pre_bishops.items()  if v > 0}, "horses": {"count": len(pre_horses),  "rvolValues": pre_horses}},
+            "post": {"bishops": {k: v for k, v in post_bishops.items() if v > 0}, "horses": {"count": len(post_horses), "rvolValues": post_horses}},
+            "z3On": z3_on,
+        }
+
+    def add_entry(target, label, idx, with_perimeter=False):
+        pos = intraday.index.get_loc(idx)
+        row = {
+            "type":   label,
+            "time":   pd.to_datetime(intraday.at[idx, "Time"]).strftime("%H:%M"),
+            "price":  float(intraday.at[idx, "Close"]),
+            "fLevel": float(intraday.at[idx, "F_numeric"]),
+        }
+        if with_perimeter:
+            row["perimeter"] = window_analysis(pos)
+        target.append(row)
+
     # ── PUT ──────────────────────────────────────
     for i in intraday.index[col("Put_FirstEntry_Emoji") == "🎯"]:
-        add_entry(put_entries, "Put E1 🎯", i)
+        add_entry(put_entries, "Put E1 🎯", i, with_perimeter=True)
 
     for i in intraday.index[col("Put_FirstEntry_Emoji") == "⏳"]:
-        add_entry(put_entries, "Put E1 ⏳ Blocked", i)
+        add_entry(put_entries, "Put E1 ⏳ Blocked", i, with_perimeter=True)
 
     for i in intraday.index[col("Put_DeferredEntry_Emoji") == "🧿"]:
-        row = {"type": "Put Reclaim 🧿",
-               "time":  pd.to_datetime(intraday.at[i, "Time"]).strftime("%H:%M"),
-               "price": float(intraday.at[i, "Close"]),
-               "fLevel": float(intraday.at[i, "F_numeric"]),
-               "horse": col("Put_DeferredReinforce_Emoji").at[i] == "❗️"}
-        put_entries.append(row)
+        pos = intraday.index.get_loc(i)
+        put_entries.append({
+            "type":      "Put Reclaim 🧿",
+            "time":      pd.to_datetime(intraday.at[i, "Time"]).strftime("%H:%M"),
+            "price":     float(intraday.at[i, "Close"]),
+            "fLevel":    float(intraday.at[i, "F_numeric"]),
+            "horse":     col("Put_DeferredReinforce_Emoji").at[i] == "❗️",
+            "perimeter": window_analysis(pos),
+        })
 
     for i in intraday.index[col("Put_SecondEntry_Emoji") == "🎯2"]:
-        add_entry(put_entries, "Put E2 🎯2", i)
+        add_entry(put_entries, "Put E2 🎯2", i, with_perimeter=True)
 
     for i in intraday.index[col("Put_ThirdEntry_Emoji") == "🎯3"]:
         add_entry(put_entries, "Put E3 🎯3", i)
 
     # ── CALL ─────────────────────────────────────
     for i in intraday.index[col("Call_FirstEntry_Emoji") == "🎯"]:
-        add_entry(call_entries, "Call E1 🎯", i)
+        add_entry(call_entries, "Call E1 🎯", i, with_perimeter=True)
 
     for i in intraday.index[col("Call_FirstEntry_Emoji") == "⏳"]:
-        add_entry(call_entries, "Call E1 ⏳ Blocked", i)
+        add_entry(call_entries, "Call E1 ⏳ Blocked", i, with_perimeter=True)
 
     for i in intraday.index[col("Call_DeferredEntry_Emoji") == "🧿"]:
-        row = {"type": "Call Reclaim 🧿",
-               "time":  pd.to_datetime(intraday.at[i, "Time"]).strftime("%H:%M"),
-               "price": float(intraday.at[i, "Close"]),
-               "fLevel": float(intraday.at[i, "F_numeric"]),
-               "horse": col("Call_DeferredReinforce_Emoji").at[i] == "❗️"}
-        call_entries.append(row)
+        pos = intraday.index.get_loc(i)
+        call_entries.append({
+            "type":      "Call Reclaim 🧿",
+            "time":      pd.to_datetime(intraday.at[i, "Time"]).strftime("%H:%M"),
+            "price":     float(intraday.at[i, "Close"]),
+            "fLevel":    float(intraday.at[i, "F_numeric"]),
+            "horse":     col("Call_DeferredReinforce_Emoji").at[i] == "❗️",
+            "perimeter": window_analysis(pos),
+        })
 
     for i in intraday.index[col("Call_SecondEntry_Emoji") == "🎯2"]:
-        add_entry(call_entries, "Call E2 🎯2", i)
+        add_entry(call_entries, "Call E2 🎯2", i, with_perimeter=True)
 
     for i in intraday.index[col("Call_ThirdEntry_Emoji") == "🎯3"]:
         add_entry(call_entries, "Call E3 🎯3", i)
