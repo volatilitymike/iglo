@@ -830,7 +830,6 @@ def build_basic_json(
 
         "entries": entries_block,
         "milestones": milestones_block,
-        "vectorCapacitance": vector_cap_block,
         "marketProfile": mp_block,
         "rangeExtension": range_ext_block,
         "initialBalance": {
@@ -864,6 +863,8 @@ def build_basic_json(
 
 
 def round_all_numeric(obj):
+    if isinstance(obj, bool):
+        return obj
     if isinstance(obj, dict):
         return {k: round_all_numeric(v) for k, v in obj.items()}
     elif isinstance(obj, list):
