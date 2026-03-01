@@ -104,8 +104,7 @@ def extract_entries(intraday: pd.DataFrame, perimeter: int = 4) -> dict:
                         break
                 except:
                     pass
-        z3_col = next((c for c in ("Z3_Score", "z3", "Z3", "Z3_score") if c in intraday.columns), None)
-        print("Z3 col found:", z3_col, "| columns:", [c for c in intraday.columns if "z3" in c.lower()])
+
         return {
             "pre":  {"bishops": {k: v for k, v in pre_bishops.items()  if v > 0}, "horses": {"count": len(pre_horses),  "rvolValues": pre_horses}},
             "post": {"bishops": {k: v for k, v in post_bishops.items() if v > 0}, "horses": {"count": len(post_horses), "rvolValues": post_horses}},
@@ -885,8 +884,7 @@ def build_basic_json(
 
     entries_block = extract_entries(intraday)
     milestones_block = extract_milestones(intraday)
-    vector_cap_block = extract_vector_capacitance(intraday)
-    mp_block = extract_market_profile(mp_df)
+
     sector = detect_sector(ticker)
     slug = f"{ticker.lower()}-{last_date}-{sector}"
     expansion_block = detect_expansion_near_e1(intraday, perimeter=10)
