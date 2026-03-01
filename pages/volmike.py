@@ -1382,7 +1382,46 @@ def build_chart(
     #         )
 
 
+    # ==========================
+    # RVOL ♘
+    # ==========================
+    if "RVOL_5" in intraday.columns and "F_numeric" in intraday.columns:
+        mask_rvol = pd.to_numeric(intraday["RVOL_5"], errors="coerce") > 1.2
 
+        if mask_rvol.any():
+            if "Kijun_F" in intraday.columns:
+                mike  = pd.to_numeric(intraday["F_numeric"], errors="coerce")
+                kijun = pd.to_numeric(intraday["Kijun_F"],   errors="coerce")
+                above_mask = mask_rvol & (mike >= kijun)
+                below_mask = mask_rvol & (mike <  kijun)
+            else:
+                above_mask = mask_rvol
+                below_mask = pd.Series(False, index=intraday.index)
+
+            for mask, pos_offset, textpos, color in [
+                (above_mask, +50, "top center",    "#22c55e"),
+                (below_mask, -50, "bottom center", "#ff3b3b"),
+            ]:
+                if mask.any():
+                    fig.add_trace(
+                        go.Scatter(
+                            x=intraday.loc[mask, "Time"],
+                            y=intraday.loc[mask, "F_numeric"] + pos_offset,
+                            mode="text",
+                            text=["♘"] * int(mask.sum()),
+                            textposition=textpos,
+                            textfont=dict(size=26, color=color),
+                            name="RVOL ♘",
+                            showlegend=False,
+                            customdata=intraday.loc[mask, "RVOL_5"].values,
+                            hovertemplate=(
+                                "Time: %{x}<br>"
+                                "F%: %{y}<br>"
+                                "♘ RVOL: %{customdata:.2f}<extra></extra>"
+                            ),
+                        ),
+                        row=1, col=1,
+                    )
     # ==========================
     # 🔑 Z3 KEY MARKER
     # ==========================
