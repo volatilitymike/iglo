@@ -93,10 +93,6 @@ def _window_analysis(
     f_series: pd.Series,
     rv_col: str | None,
     z3_col: str | None,
-    has_tight: bool,
-    has_std: bool,
-    has_bbw_exp: bool,
-    has_kijun: bool,
 ) -> dict:
     n     = len(intraday)
     start = max(0, center_pos - perimeter)
@@ -107,29 +103,35 @@ def _window_analysis(
     pre_h:  list[float] = []
     post_h: list[float] = []
 
+    rvol_col = next((c for c in ("RVOL_5", "RVOL", "rvol") if c in intraday.columns), None)
+    has_kijun_col = "Kijun_F" in intraday.columns
+
     for pos in range(start, end + 1):
         if pos == center_pos:
             continue
         tb = pre_b  if pos < center_pos else post_b
         th = pre_h  if pos < center_pos else post_h
 
-        if has_tight:
-            val = intraday["BBW_Tight_Emoji"].iat[pos]
-            if isinstance(val, str) and val.strip() == "\U0001f41d":
+        # Yellow bishop — BBW Tight (🐝)
+        if "BBW_Tight_Emoji" in intraday.columns:
+            val = str(intraday["BBW_Tight_Emoji"].iat[pos])
+            if val.strip() == "🐝":
                 tb["yellow"] += 1
 
-        if has_std:
-            val = intraday["STD_Alert"].iat[pos]
-            if isinstance(val, str) and val.strip() not in ("", "nan"):
+        # Purple bishop — STD Alert (🐦‍🔥)
+        if "STD_Alert" in intraday.columns:
+            val = str(intraday["STD_Alert"].iat[pos])
+            if val.strip() not in ("", "nan"):
                 tb["purple"] += 1
 
-        if has_bbw_exp:
-            val = intraday["BBW Alert"].iat[pos]
-            if isinstance(val, str) and val.strip() not in ("", "nan"):
+        # Green/Red bishop — BBW Expansion (🔥)
+        if "BBW Alert" in intraday.columns:
+            val = str(intraday["BBW Alert"].iat[pos])
+            if val.strip() == "🔥":
                 fv = f_series.iat[pos]
                 kv = (
                     pd.to_numeric(intraday["Kijun_F"].iat[pos], errors="coerce")
-                    if has_kijun else float("nan")
+                    if has_kijun_col else float("nan")
                 )
                 if pd.notna(fv) and pd.notna(kv):
                     if fv >= kv:
@@ -139,8 +141,9 @@ def _window_analysis(
                 else:
                     tb["green"] += 1
 
-        if rv_col is not None:
-            rv = pd.to_numeric(intraday[rv_col].iat[pos], errors="coerce")
+        # Horses — RVOL > 1.2
+        if rvol_col is not None:
+            rv = pd.to_numeric(intraday[rvol_col].iat[pos], errors="coerce")
             if pd.notna(rv) and rv > 1.2:
                 th.append(round(float(rv), 2))
 
@@ -204,10 +207,6 @@ def extract_entries(intraday: pd.DataFrame, perimeter: int = 4) -> dict:
 
     rv_col      = _resolve_col(intraday, _RV_COLS)
     z3_col      = _resolve_col(intraday, _Z3_COLS)
-    has_tight   = "BBW_Tight_Emoji" in intraday.columns
-    has_std     = "STD_Alert"        in intraday.columns
-    has_bbw_exp = "BBW Alert"        in intraday.columns
-    has_kijun   = "Kijun_F"          in intraday.columns
 
     # Exit signal index sets
     put_signals = (
@@ -261,7 +260,6 @@ def extract_entries(intraday: pd.DataFrame, perimeter: int = 4) -> dict:
         return _window_analysis(
             intraday, pos, perimeter, f,
             rv_col, z3_col,
-            has_tight, has_std, has_bbw_exp, has_kijun,
         )
 
     def _add(target: list, label: str, idx,
@@ -469,33 +467,31 @@ def extract_range_extension(
 
     rv_col      = _resolve_col(intraday, _RV_COLS)
     z3_col      = _resolve_col(intraday, _Z3_COLS)
-    has_tight   = "BBW_Tight_Emoji" in intraday.columns
-    has_std     = "STD_Alert"        in intraday.columns
-    has_bbw_exp = "BBW Alert"        in intraday.columns
-    has_kijun   = "Kijun_F"          in intraday.columns
+    rvol_col    = next((c for c in ("RVOL_5", "RVOL", "rvol") if c in intraday.columns), None)
+    has_kijun_col = "Kijun_F" in intraday.columns
 
     def _win(start: int, end: int) -> dict:
         bishops: dict[str, int] = {"yellow": 0, "purple": 0, "green": 0, "red": 0}
         horses:  list[float]    = []
 
         for pos in range(max(0, start), min(n - 1, end) + 1):
-            if has_tight:
-                val = intraday["BBW_Tight_Emoji"].iat[pos]
-                if isinstance(val, str) and val.strip() == "\U0001f41d":
+            # Yellow bishop — BBW Tight (🐝)
+            if "BBW_Tight_Emoji" in intraday.columns:
+                if str(intraday["BBW_Tight_Emoji"].iat[pos]).strip() == "🐝":
                     bishops["yellow"] += 1
 
-            if has_std:
-                val = intraday["STD_Alert"].iat[pos]
-                if isinstance(val, str) and val.strip() not in ("", "nan"):
+            # Purple bishop — STD Alert (🐦‍🔥)
+            if "STD_Alert" in intraday.columns:
+                if str(intraday["STD_Alert"].iat[pos]).strip() not in ("", "nan"):
                     bishops["purple"] += 1
 
-            if has_bbw_exp:
-                val = intraday["BBW Alert"].iat[pos]
-                if isinstance(val, str) and val.strip() not in ("", "nan"):
+            # Green/Red bishop — BBW Expansion (🔥)
+            if "BBW Alert" in intraday.columns:
+                if str(intraday["BBW Alert"].iat[pos]).strip() == "🔥":
                     fv = f.iat[pos]
                     kv = (
                         pd.to_numeric(intraday["Kijun_F"].iat[pos], errors="coerce")
-                        if has_kijun else float("nan")
+                        if has_kijun_col else float("nan")
                     )
                     if pd.notna(fv) and pd.notna(kv):
                         if fv >= kv:
@@ -505,8 +501,9 @@ def extract_range_extension(
                     else:
                         bishops["green"] += 1
 
-            if rv_col is not None:
-                rv = pd.to_numeric(intraday[rv_col].iat[pos], errors="coerce")
+            # Horses — RVOL > 1.2
+            if rvol_col is not None:
+                rv = pd.to_numeric(intraday[rvol_col].iat[pos], errors="coerce")
                 if pd.notna(rv) and rv > 1.2:
                     horses.append(round(float(rv), 2))
 
