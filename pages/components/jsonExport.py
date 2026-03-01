@@ -830,7 +830,6 @@ def build_basic_json(
 
         "entries": entries_block,
         "milestones": milestones_block,
-        "marketProfile": mp_block,
         "rangeExtension": range_ext_block,
         "initialBalance": {
             "high": {
