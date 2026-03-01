@@ -97,8 +97,10 @@ def extract_entries(intraday: pd.DataFrame, perimeter: int = 4) -> dict:
         z3_val = None
         if z3_col is not None:
             z3_val = pd.to_numeric(intraday[z3_col].iat[center_pos], errors="coerce")
-        z3_on = bool(pd.notna(z3_val) and abs(float(z3_val)) >= 1.5)
-
+        try:
+                z3_on = bool(float(z3_val) >= 1.5 or float(z3_val) <= -1.5)
+        except:
+                z3_on = False
         return {
             "pre":  {"bishops": {k: v for k, v in pre_bishops.items()  if v > 0}, "horses": {"count": len(pre_horses),  "rvolValues": pre_horses}},
             "post": {"bishops": {k: v for k, v in post_bishops.items() if v > 0}, "horses": {"count": len(post_horses), "rvolValues": post_horses}},
