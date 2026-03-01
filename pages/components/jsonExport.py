@@ -39,43 +39,63 @@ def human_volume(n):
     else:
         return str(int(n))
 def extract_entries(intraday: pd.DataFrame) -> dict:
-    """
-    Simple, stable extractor for Call/Put 🎯 entries.
-    No prototypes, suffixes, milestones — clean and safe.
-    """
     call_entries = []
-    put_entries = []
+    put_entries  = []
 
     def add_entry(target, label, idx):
         target.append({
-            "Type": label,
-            "Time": pd.to_datetime(intraday.at[idx, "Time"]).strftime("%H:%M"),
-            "Price": float(intraday.at[idx, "Close"]),
-            "F%": float(intraday.at[idx, "F_numeric"]),
+            "type":  label,
+            "time":  pd.to_datetime(intraday.at[idx, "Time"]).strftime("%H:%M"),
+            "price": float(intraday.at[idx, "Close"]),
+            "fLevel": float(intraday.at[idx, "F_numeric"]),
         })
 
-    # PUTS
-    for i in intraday.index[intraday["Put_FirstEntry_Emoji"] == "🎯"]:
-        add_entry(put_entries, "Put 🎯1", i)
-    for i in intraday.index[intraday["Put_SecondEntry_Emoji"] == "🎯2"]:
-        add_entry(put_entries, "Put 🎯2", i)
-    for i in intraday.index[intraday["Put_ThirdEntry_Emoji"] == "🎯3"]:
-        add_entry(put_entries, "Put 🎯3", i)
+    def col(name):
+        return intraday[name] if name in intraday.columns else pd.Series("", index=intraday.index)
 
-    # CALLS
-    for i in intraday.index[intraday["Call_FirstEntry_Emoji"] == "🎯"]:
-        add_entry(call_entries, "Call 🎯1", i)
-    for i in intraday.index[intraday["Call_SecondEntry_Emoji"] == "🎯2"]:
-        add_entry(call_entries, "Call 🎯2", i)
-    for i in intraday.index[intraday["Call_ThirdEntry_Emoji"] == "🎯3"]:
-        add_entry(call_entries, "Call 🎯3", i)
+    # ── PUT ──────────────────────────────────────
+    for i in intraday.index[col("Put_FirstEntry_Emoji") == "🎯"]:
+        add_entry(put_entries, "Put E1 🎯", i)
 
-    return {
-        "call": call_entries,
-        "put": put_entries,
-    }
+    for i in intraday.index[col("Put_FirstEntry_Emoji") == "⏳"]:
+        add_entry(put_entries, "Put E1 ⏳ Blocked", i)
 
+    for i in intraday.index[col("Put_DeferredEntry_Emoji") == "🧿"]:
+        row = {"type": "Put Reclaim 🧿",
+               "time":  pd.to_datetime(intraday.at[i, "Time"]).strftime("%H:%M"),
+               "price": float(intraday.at[i, "Close"]),
+               "fLevel": float(intraday.at[i, "F_numeric"]),
+               "horse": col("Put_DeferredReinforce_Emoji").at[i] == "❗️"}
+        put_entries.append(row)
 
+    for i in intraday.index[col("Put_SecondEntry_Emoji") == "🎯2"]:
+        add_entry(put_entries, "Put E2 🎯2", i)
+
+    for i in intraday.index[col("Put_ThirdEntry_Emoji") == "🎯3"]:
+        add_entry(put_entries, "Put E3 🎯3", i)
+
+    # ── CALL ─────────────────────────────────────
+    for i in intraday.index[col("Call_FirstEntry_Emoji") == "🎯"]:
+        add_entry(call_entries, "Call E1 🎯", i)
+
+    for i in intraday.index[col("Call_FirstEntry_Emoji") == "⏳"]:
+        add_entry(call_entries, "Call E1 ⏳ Blocked", i)
+
+    for i in intraday.index[col("Call_DeferredEntry_Emoji") == "🧿"]:
+        row = {"type": "Call Reclaim 🧿",
+               "time":  pd.to_datetime(intraday.at[i, "Time"]).strftime("%H:%M"),
+               "price": float(intraday.at[i, "Close"]),
+               "fLevel": float(intraday.at[i, "F_numeric"]),
+               "horse": col("Call_DeferredReinforce_Emoji").at[i] == "❗️"}
+        call_entries.append(row)
+
+    for i in intraday.index[col("Call_SecondEntry_Emoji") == "🎯2"]:
+        add_entry(call_entries, "Call E2 🎯2", i)
+
+    for i in intraday.index[col("Call_ThirdEntry_Emoji") == "🎯3"]:
+        add_entry(call_entries, "Call E3 🎯3", i)
+
+    return {"call": call_entries, "put": put_entries}
 
 def detect_expansion_near_e1(
     intraday: pd.DataFrame,
